@@ -6,17 +6,24 @@ import { useState } from "react";
 export default function KameraPage() {
   const [toastMsg, setToastMsg] = useState("");
   const [activeFilter, setActiveFilter] = useState("Semua");
+  const [cvOverride, setCvOverride] = useState<Record<string, "Aktif" | "Mati">>({});
 
   const handleAction = (id: string, action: string) => {
     setToastMsg(`${action} pada kamera ${id} berhasil dikirim.`);
     setTimeout(() => setToastMsg(""), 3000);
   };
 
+  const toggleCv = (id: string, current: string) => {
+    const next = current === "Aktif" ? "Mati" : "Aktif";
+    setCvOverride((o) => ({ ...o, [id]: next }));
+    handleAction(id, next === "Aktif" ? "Hidupkan analitik CV" : "Matikan analitik CV");
+  };
+
   const cameras = Array.from({ length: 15 }).map((_, i) => ({
     id: `CAM-BDBK-${100 + i}`,
     location: i < 5 ? "Jl. Margonda Raya" : i < 10 ? "Simpang Pemda Cibinong" : "Simpang BCP Bekasi",
     status: i === 4 ? "Offline" : i === 7 ? "Gangguan" : "Online",
-    cvStatus: i === 4 ? "Mati" : i === 7 ? "Mati" : "Aktif",
+    cvStatus: cvOverride[`CAM-BDBK-${100 + i}`] ?? (i === 4 ? "Mati" : i === 7 ? "Mati" : "Aktif"),
     ip: `192.168.10.${100 + i}`,
     protocol: i % 3 === 0 ? "HLS" : i % 5 === 0 ? "WebRTC" : "RTSP"
   }));
@@ -168,19 +175,32 @@ export default function KameraPage() {
                       >
                         Restart
                       </button>
-                      <button 
-                        onClick={() => handleAction(cam.id, cam.cvStatus === 'Aktif' ? 'Matikan CV' : 'Hidupkan CV')}
-                        disabled={cam.status !== 'Online'}
-                        className={`text-xs font-medium px-3 py-1.5 rounded transition-colors ${
-                          cam.status !== 'Online' 
-                          ? 'text-slate-400 bg-slate-50 cursor-not-allowed opacity-50'
-                          : cam.cvStatus === 'Aktif' 
-                            ? 'text-rose-600 bg-rose-50 hover:bg-rose-100' 
-                            : 'text-blue-600 bg-blue-50 hover:bg-blue-100'
-                        }`}
-                      >
-                        {cam.cvStatus === 'Aktif' ? 'Matikan CV' : 'Hidupkan CV'}
-                      </button>
+                      <div className="flex flex-col items-center gap-1 pl-1">
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Status Analitik</span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            role="switch"
+                            aria-checked={cam.cvStatus === 'Aktif'}
+                            aria-label={`Status analitik ${cam.id}`}
+                            title={cam.status !== 'Online' ? 'Kamera tidak online' : cam.cvStatus === 'Aktif' ? 'Matikan analitik CV' : 'Hidupkan analitik CV'}
+                            onClick={() => toggleCv(cam.id, cam.cvStatus)}
+                            disabled={cam.status !== 'Online'}
+                            className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 ${
+                              cam.cvStatus === 'Aktif' ? 'bg-accent' : 'bg-slate-300'
+                            }`}
+                          >
+                            <span
+                              className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                                cam.cvStatus === 'Aktif' ? 'translate-x-[22px]' : 'translate-x-0.5'
+                              }`}
+                            />
+                          </button>
+                          <span className={`w-6 text-left text-[10px] font-semibold ${cam.cvStatus === 'Aktif' ? 'text-accent' : 'text-slate-400'}`}>
+                            {cam.cvStatus === 'Aktif' ? 'ON' : 'OFF'}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </td>
                 </tr>
