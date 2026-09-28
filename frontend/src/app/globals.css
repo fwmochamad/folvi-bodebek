@@ -1,24 +1,127 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-space-grotesk), var(--font-inter), sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+
+  /* Palet terang ("white & clear") untuk sidebar, header, dan Dashboard Pimpinan */
+  --color-canvas: #f5f7fb;
+  --color-surface: #ffffff;
+  --color-raised: #f2f4f8;
+  --color-line: #e4e7ee;
+  --color-line-strong: #d2d7e2;
+  --color-faint: #98a0b3;
+  --color-subtle: #6c7489;
+  --color-muted: #4d5568;
+  --color-ink: #161b2e;
+
+  --color-accent: #1597c9; /* biru muda dari logo FOLVI */
+  --color-ok: #2e9d6c;
+  --color-warn: #dc8a2c;
+  --color-bad: #dc4848;
+  --color-info: #3d6fdc;
+  --color-caution: #d6a91e;
 }
 
+/* Tema selalu terang, tidak mengikuti tema gelap browser/OS. */
 :root {
+  color-scheme: light;
   --background: #f8fafc; /* slate-50 */
   --foreground: #0f172a; /* slate-900 */
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f172a;
-    --foreground: #f8fafc;
-  }
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+}
+
+/* ---------- Peta titik pantau (Leaflet) ---------- */
+
+/* Peta dasar OpenStreetMap dibuat lebih pudar agar titik status lebih menonjol. */
+.map-soft .leaflet-tile-pane {
+  filter: saturate(0.35) brightness(1.04) contrast(0.92);
+}
+
+.map-soft {
+  background: var(--color-canvas);
+  font-family: var(--font-sans);
+}
+
+.titik-dot {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  background: var(--c);
+  border: 2px solid #fff;
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--c) 22%, transparent),
+    0 0 14px 3px color-mix(in srgb, var(--c) 55%, transparent);
+  cursor: pointer;
+  transition: transform 150ms ease;
+}
+
+.titik-dot:hover {
+  transform: scale(1.25);
+}
+
+.titik-macet {
+  animation: titik-pulse 2s ease-in-out infinite;
+}
+
+@keyframes titik-pulse {
+  50% {
+    box-shadow:
+      0 0 0 7px color-mix(in srgb, var(--c) 16%, transparent),
+      0 0 20px 6px color-mix(in srgb, var(--c) 45%, transparent);
+  }
+}
+
+/* Kamera mati: tetap tampil dengan tanda silang agar lubang cakupan terlihat. */
+.titik-mati {
+  position: relative;
+  background: #fff;
+  border-color: var(--c);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--c) 20%, transparent);
+}
+
+.titik-mati::before,
+.titik-mati::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 60%;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--c);
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.titik-mati::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.titik-dot.is-selected {
+  border-width: 3px;
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+.leaflet-tooltip.titik-tooltip {
+  padding: 8px 12px;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 8px 24px -8px rgb(22 27 46 / 0.25);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.leaflet-tooltip-top.titik-tooltip::before {
+  border-top-color: #fff;
 }

@@ -1,74 +1,56 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Bell, ChevronDown, User, Search, Menu } from "lucide-react";
+import { useState } from "react";
+import { Bell, ChevronDown, User, Menu } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
+
+const roles = [
+  { name: "Pimpinan Direktorat", path: "/" },
+  { name: "Operator Ruang Kendali", path: "/kendali" },
+  { name: "Dinas Perhubungan Daerah", path: "/peta" },
+];
 
 export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
-  const [role, setRole] = useState("Pimpinan Direktorat");
+  const [lastRole, setLastRole] = useState(roles[0].name);
   const [showRoleMenu, setShowRoleMenu] = useState(false);
-  
-  // Sync role dropdown text with current route for better UX
-  useEffect(() => {
-    if (pathname === '/') setRole("Pimpinan Direktorat");
-    else if (pathname.includes('/analisis')) setRole("Analis Lalu Lintas");
-    else if (pathname.includes('/kendali')) setRole("Operator Ruang Kendali");
-    else if (pathname.includes('/peta')) setRole("Dinas Perhubungan Daerah");
-  }, [pathname]);
 
-  const roles = [
-    { name: "Pimpinan Direktorat", path: "/" },
-    { name: "Analis Lalu Lintas", path: "/analisis" },
-    { name: "Operator Ruang Kendali", path: "/kendali" },
-    { name: "Dinas Perhubungan Daerah", path: "/peta" }
-  ];
+  // Nama peran mengikuti rute aktif; di halaman lain tetap peran terakhir yang dipilih.
+  const role = roles.find((r) => (r.path === "/" ? pathname === "/" : pathname.startsWith(r.path)))?.name ?? lastRole;
 
-  const handleRoleChange = (selectedRole: {name: string, path: string}) => {
-    setRole(selectedRole.name);
+  const handleRoleChange = (selectedRole: { name: string; path: string }) => {
+    setLastRole(selectedRole.name);
     setShowRoleMenu(false);
     router.push(selectedRole.path);
   };
 
   return (
-    <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-6 z-10 relative shadow-sm">
-      <div className="flex items-center w-1/2 md:w-1/3">
-        <button className="md:hidden mr-2 p-2 text-slate-500 hover:bg-slate-100 rounded-lg">
-          <Menu className="h-5 w-5" />
-        </button>
-        <div className="relative w-full max-w-md hidden sm:block">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-4 w-4 text-slate-400" />
-          </div>
-          <input 
-            type="text" 
-            placeholder="Cari lokasi simpang atau jalan..." 
-            className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors"
-          />
-        </div>
-      </div>
-      
-      <div className="flex items-center space-x-2 md:space-x-4">
+    <header className="h-16 bg-surface border-b border-line flex items-center justify-between px-4 md:px-6 z-10 relative">
+      <button className="md:hidden p-2 text-muted hover:bg-raised rounded-lg" aria-label="Buka menu">
+        <Menu className="h-5 w-5" />
+      </button>
+
+      <div className="ml-auto flex items-center space-x-2 md:space-x-4">
         {/* Role Switcher */}
         <div className="relative">
-          <button 
+          <button
             onClick={() => setShowRoleMenu(!showRoleMenu)}
-            className="flex items-center space-x-2 text-xs md:text-sm font-medium text-slate-600 hover:text-slate-900 bg-slate-50 px-2 py-1.5 md:px-3 md:py-1.5 rounded-lg border border-slate-200 transition-colors"
+            className="flex items-center space-x-2 text-xs md:text-sm font-medium text-muted hover:text-accent hover:border-accent/40 bg-surface px-2 py-1.5 md:px-3 md:py-1.5 rounded-lg border border-line transition-colors"
           >
             <span className="hidden sm:inline">{role}</span>
             <span className="sm:hidden">Role</span>
-            <ChevronDown className="h-4 w-4 text-slate-400" />
+            <ChevronDown className="h-4 w-4 text-subtle" />
           </button>
-          
+
           {showRoleMenu && (
-            <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-slate-100 py-1 z-50">
-              {roles.map(r => (
+            <div className="absolute right-0 mt-2 w-56 bg-surface rounded-lg shadow-lg border border-line py-1 z-50">
+              {roles.map((r) => (
                 <button
                   key={r.name}
                   onClick={() => handleRoleChange(r)}
                   className={`block w-full text-left px-4 py-2 text-sm transition-colors ${
-                    role === r.name ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-700 hover:bg-slate-50'
+                    role === r.name ? "bg-accent/15 text-accent font-medium" : "text-muted hover:bg-accent/10 hover:text-accent"
                   }`}
                 >
                   {r.name}
@@ -77,18 +59,18 @@ export default function Header() {
             </div>
           )}
         </div>
-        
+
         {/* Notifications */}
-        <button className="relative p-2 text-slate-400 hover:text-slate-600 transition-colors rounded-full hover:bg-slate-50">
+        <button className="relative p-2 text-subtle hover:text-ink transition-colors rounded-full hover:bg-raised" aria-label="Notifikasi">
           <Bell className="h-5 w-5" />
-          <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 border-2 border-white"></span>
+          <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-bad border-2 border-surface"></span>
         </button>
-        
-        <div className="h-8 w-px bg-slate-200 mx-2"></div>
-        
+
+        <div className="h-8 w-px bg-line mx-2"></div>
+
         {/* User Profile */}
-        <button className="flex items-center space-x-2 p-1 rounded-full hover:bg-slate-50 transition-colors">
-          <div className="h-8 w-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+        <button className="flex items-center space-x-2 p-1 rounded-full hover:bg-raised transition-colors" aria-label="Profil pengguna">
+          <div className="h-8 w-8 rounded-full bg-accent/15 text-accent flex items-center justify-center">
             <User className="h-4 w-4" />
           </div>
         </button>
