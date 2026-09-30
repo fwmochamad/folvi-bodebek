@@ -21,7 +21,6 @@ import {
 import { useMemo, useState } from "react";
 import { AREAS, getMapData, type Area, type MapPoint } from "@/lib/dashboard/data";
 import { demoStreamFor } from "@/lib/cctv/streams";
-import { STATUS_STYLE } from "@/components/peta/status";
 import CameraPicker from "@/components/kendali/CameraPicker";
 import { useToast } from "@/components/dashboard/ui";
 
@@ -401,7 +400,6 @@ function Tile({
   }
 
   const stream = cam.status === "mati" ? null : demoStreamFor(cam.id);
-  const style = STATUS_STYLE[cam.status];
 
   return (
     <div className="group relative aspect-video overflow-hidden rounded-lg bg-[#0e1220] text-white">
@@ -423,11 +421,6 @@ function Tile({
       {/* Info kamera */}
       <div className="pointer-events-none absolute left-2 top-2 flex flex-wrap items-center gap-1.5">
         <span className="rounded bg-black/60 px-1.5 py-0.5 font-mono text-[10px]">{cam.camera}</span>
-        {cam.status !== "mati" && !compact && (
-          <span className="rounded px-1.5 py-0.5 text-[10px] font-semibold" style={{ background: `${style.color}33`, color: "#fff", boxShadow: `inset 0 0 0 1px ${style.color}` }}>
-            {style.label} · {cam.speed} km/j
-          </span>
-        )}
       </div>
       <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent px-2.5 pb-2 pt-6">
         <p className={`truncate font-medium ${compact ? "text-[11px]" : "text-xs"}`}>{cam.name}</p>
