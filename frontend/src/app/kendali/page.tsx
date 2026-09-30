@@ -86,7 +86,7 @@ const DSS_LIST: Dss[] = [
 
 export default function KendaliPage() {
   const cameras = useMemo(() => getMapData("bodebek", "harian").points, []);
-  const byId = useMemo(() => new Map(cameras.map((c, i) => [c.id, { cam: c, index: i }])), [cameras]);
+  const byId = useMemo(() => new Map(cameras.map((c) => [c.id, c])), [cameras]);
 
   const [layout, setLayout] = useState<Layout>(4);
   const [group, setGroup] = useState<GroupId>("prioritas");
@@ -227,20 +227,16 @@ export default function KendaliPage() {
             </div>
 
             <div className={`grid gap-2 ${WALL_COLS[layout]}`}>
-              {slots.map((id, i) => {
-                const entry = id ? byId.get(id) : undefined;
-                return (
-                  <Tile
-                    key={`${i}-${id ?? "kosong"}`}
-                    slot={i}
-                    cam={entry?.cam}
-                    streamIndex={entry?.index ?? 0}
-                    compact={layout >= 9}
-                    onPick={() => setPicking(i)}
-                    onRemove={() => setSlot(i, null)}
-                  />
-                );
-              })}
+              {slots.map((id, i) => (
+                <Tile
+                  key={`${i}-${id ?? "kosong"}`}
+                  slot={i}
+                  cam={id ? byId.get(id) : undefined}
+                  compact={layout >= 9}
+                  onPick={() => setPicking(i)}
+                  onRemove={() => setSlot(i, null)}
+                />
+              ))}
             </div>
 
             <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-xs text-subtle">
@@ -378,14 +374,12 @@ function ChevronDownIcon() {
 function Tile({
   slot,
   cam,
-  streamIndex,
   compact,
   onPick,
   onRemove,
 }: {
   slot: number;
   cam: MapPoint | undefined;
-  streamIndex: number;
   compact: boolean;
   onPick: () => void;
   onRemove: () => void;
@@ -406,7 +400,7 @@ function Tile({
     );
   }
 
-  const stream = cam.status === "mati" ? null : demoStreamFor(streamIndex);
+  const stream = cam.status === "mati" ? null : demoStreamFor(cam.id);
   const style = STATUS_STYLE[cam.status];
 
   return (
