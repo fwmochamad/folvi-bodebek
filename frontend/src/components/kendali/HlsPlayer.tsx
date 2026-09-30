@@ -19,9 +19,18 @@ function HlsVideo({ src, onFatal }: { src: string; onFatal: () => void }) {
       onFatal();
     };
     const onPlaying = () => setState("live");
+    // Rekaman diputar berulang dari titik acak agar kamera yang berbagi rekaman tidak tampil serempak.
+    const seekRandom = () => {
+      if (Number.isFinite(video.duration)) video.currentTime = Math.random() * video.duration;
+    };
     video.addEventListener("playing", onPlaying);
 
-    if (Hls.isSupported()) {
+    if (!/\.m3u8(\?|$)/i.test(src)) {
+      video.loop = true;
+      video.addEventListener("loadedmetadata", seekRandom, { once: true });
+      video.addEventListener("error", fail);
+      video.src = src;
+    } else if (Hls.isSupported()) {
       hls = new Hls({ liveSyncDurationCount: 3, maxBufferLength: 10, backBufferLength: 10 });
       hls.on(Hls.Events.ERROR, (_, data) => {
         if (data.fatal) fail();
@@ -38,6 +47,7 @@ function HlsVideo({ src, onFatal }: { src: string; onFatal: () => void }) {
 
     return () => {
       video.removeEventListener("playing", onPlaying);
+      video.removeEventListener("loadedmetadata", seekRandom);
       video.removeEventListener("error", fail);
       hls?.destroy();
       video.removeAttribute("src");
@@ -70,7 +80,7 @@ function HlsVideo({ src, onFatal }: { src: string; onFatal: () => void }) {
   );
 }
 
-/** Pemutar HLS (.m3u8) dengan status sambung dan percobaan ulang otomatis. */
+/** Pemutar CCTV: siaran HLS (.m3u8) atau berkas video biasa, dengan status sambung dan percobaan ulang otomatis. */
 export default function HlsPlayer({ src }: { src: string }) {
   const [attempt, setAttempt] = useState(0);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
